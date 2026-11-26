@@ -17,3 +17,5 @@
 The original SDK symbol catalog is generated from the verified preserved APK by tools/sdk_inventory.py. See SDK-REFERENCE for reproducible commands and scope. GitHub Actions publishes the generated Markdown and JSON as build artifacts. No proprietary implementation is included in the generator.
 
 Every behavioral claim should distinguish original published documentation, DEX evidence, independent implementation, tests, and physical validation. Do not infer device support merely because a class is present.
+
+- [Experimental native GATT transport](NATIVE-TRANSPORT.md)

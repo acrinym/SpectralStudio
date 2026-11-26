@@ -23,6 +23,8 @@ public final class MainActivity extends Activity {
     private ScanCallback callback;
     private MidiDevice device;
     private BluetoothGatt probe;
+    private NativeRing nativeRing;
+    private CheckBox nativeMode;
     private TextView diagnostic;
     private String report="";
     private MidiOutputPort port;
@@ -51,8 +53,9 @@ public final class MainActivity extends Activity {
         });
         TextView title=new TextView(this); title.setText("SpectralStudio"); title.setTextSize(28); root.addView(title);
         status=new TextView(this); status.setText("Preparing local sounds. Wake the ring using USB, then unplug."); root.addView(status);
-        Button scan=new Button(this); scan.setText("Scan for Bluetooth MIDI devices"); scan.setOnClickListener(v->requestScan()); root.addView(scan);
+        Button scan=new Button(this); scan.setText("Scan for Bluetooth devices"); scan.setOnClickListener(v->requestScan()); root.addView(scan);
         Button disconnect=new Button(this); disconnect.setText("Disconnect"); disconnect.setOnClickListener(v->{stopScan(); closeRing(); status.setText("Disconnected");}); root.addView(disconnect);
+        nativeMode=new CheckBox(this);nativeMode.setText("Experimental native RGB mode (not MIDI)");root.addView(nativeMode);
         devices=new LinearLayout(this); devices.setOrientation(LinearLayout.VERTICAL); root.addView(devices);
         diagnostic=new TextView(this);diagnostic.setText("Long-press a discovered device to inspect its GATT services without sending Sphero commands.");diagnostic.setTextIsSelectable(true);root.addView(diagnostic);
         Button copy=new Button(this);copy.setText("Copy GATT report");copy.setOnClickListener(v->{if(report.isEmpty()){status.setText("No GATT report yet.");return;}android.content.ClipboardManager clipboard=getSystemService(android.content.ClipboardManager.class);clipboard.setPrimaryClip(android.content.ClipData.newPlainText("SpectralStudio GATT",report));status.setText("GATT report copied.");});root.addView(copy);
@@ -162,7 +165,7 @@ public final class MainActivity extends Activity {
                 if(found.putIfAbsent(address,d)!=null)return;
                 Button button=new Button(MainActivity.this);
                 button.setText((name==null?"Unnamed MIDI":name)+" • "+address+(midi?" [MIDI]":""));
-                button.setOnClickListener(v->connect(d));button.setOnLongClickListener(v->{inspect(d);return true;}); devices.addView(button);
+                button.setOnClickListener(v->{if(nativeMode.isChecked())connectNative(d);else connect(d);});button.setOnLongClickListener(v->{inspect(d);return true;}); devices.addView(button);
             });}
             @Override public void onScanFailed(int code){ui.post(()->{if(callback==this){stopScan();status.setText("BLE scan failed: "+code);}});}
         };
@@ -195,6 +198,17 @@ public final class MainActivity extends Activity {
         },ui);}catch(SecurityException e){closeRing();status.setText("Bluetooth connection permission unavailable.");}
         ui.postDelayed(()->{if(attempt==generation && device==null){closeRing();status.setText("MIDI connection timed out.");}},20000);
     }
+    private void connectNative(BluetoothDevice target){
+        stopScan();closeRing();final int attempt=generation;
+        status.setText("Opening experimental native GATT...");
+        nativeRing=new NativeRing(ui,t->{
+            if(attempt!=generation)return;
+            String label="RGB "+t.red()+","+t.green()+","+t.blue()+" / confidence "+t.confidence()+" / ID "+t.classification()+" / intensity "+t.intensity();
+            if(t.identified()&&t.classification()<12)triggerPad(t.classification(),100,"Native");
+            event.setText(label);
+        },s->{if(attempt==generation)status.setText(s);});
+        nativeRing.connect(this,target);
+    }
     private void inspect(BluetoothDevice target){
         stopScan();closeRing();final int attempt=generation;
         report="";diagnostic.setText("Discovering GATT services…");status.setText("Read-only GATT inspection");
@@ -225,7 +239,7 @@ public final class MainActivity extends Activity {
     }
     private void closeProbe(){BluetoothGatt g=probe;probe=null;if(g!=null){try{g.disconnect();}catch(SecurityException ignored){}try{g.close();}catch(SecurityException ignored){}}}
     private static void close(Closeable c){if(c!=null)try{c.close();}catch(IOException ignored){}}
-    private void closeRing(){generation++;closeProbe();close(port);port=null;close(device);device=null;}
+    private void closeRing(){generation++;if(nativeRing!=null){nativeRing.close();nativeRing=null;}closeProbe();close(port);port=null;close(device);device=null;}
     @Override protected void onStop(){stopScan();closeRing();if(pack!=null)pack.stop();status.setText("Disconnected while app is in background.");super.onStop();}
     @Override protected void onDestroy(){destroyed=true;stopScan();closeRing();ui.removeCallbacksAndMessages(null);if(sound!=null)sound.release();if(pack!=null)pack.close();super.onDestroy();}
 }
