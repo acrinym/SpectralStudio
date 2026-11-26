@@ -25,6 +25,17 @@ public class CoreChecks {
         map.assign(0,1,60);check(map.find(1,60)==0&&map.find(0,60)==1);
         map.assign(0,2,70);check(map.find(1,60)==-1&&map.find(2,70)==0);
         map.clear();check(map.key(1)==-1&&map.key(0)==-1);
-        System.out.println("MIDI stream, procedural WAV and pad mapping checks passed");
+        SpecdrumsProtocol.Tap tap=SpecdrumsProtocol.decodeTap(b(255,128,0,240,4,99));
+        check(tap.red()==255&&tap.green()==128&&tap.blue()==0&&tap.confidence()==240&&tap.classification()==4&&tap.intensity()==99&&tap.identified());
+        check(!SpecdrumsProtocol.decodeTap(b(0,0,0,0,255,0)).identified());
+        try{SpecdrumsProtocol.decodeTap(b(1,2,3,4,5));throw new AssertionError();}catch(IllegalArgumentException expected){}
+        var palette=List.of(new SpecdrumsProtocol.Color(0,255,0,0),new SpecdrumsProtocol.Color(11,0,0,255));
+        check(SpecdrumsProtocol.decodePalette(SpecdrumsProtocol.encodePalette(palette)).equals(palette));
+        check(Arrays.equals(SpecdrumsProtocol.identify(1,2,3,255),b(1,2,3,255)));
+        check(SpecdrumsProtocol.decodeMatches(b(11,255)).equals(List.of(new SpecdrumsProtocol.Match(11,255))));
+        check(Arrays.equals(SpecdrumsProtocol.enableTap(true),b(1)));
+        check(Arrays.equals(SpecdrumsProtocol.loadPalette(1),b(1)));
+        try{SpecdrumsProtocol.encodePalette(List.of(palette.get(0),palette.get(0)));throw new AssertionError();}catch(IllegalArgumentException expected){}
+        System.out.println("MIDI, WAV, mapping and native payload checks passed");
     }
 }
