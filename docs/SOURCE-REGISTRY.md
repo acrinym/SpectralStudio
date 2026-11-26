@@ -20,3 +20,7 @@ The original manual and public SDK terms contain reproduction restrictions. Link
 ## Outstanding source recovery
 
 Original EDU application archive and complete activity-card set; original MIX and EDU instructional videos; firmware version history and older APKs; full list of published SDK variants; original service/characteristic and packet captures from SD01.
+
+## English SD01 manual preservation checkpoint (2026-11-26)
+
+The owner supplied two independently downloaded English PDFs from FCC/device.report and Geizhals. Both are exactly 758550 bytes and SHA-256 `7ca75588dc94d193a7fe0a5bbd1ec8852528edd961aded3d247c89ae311fed22`. One deduplicated copy is archived privately in the owner's Sphero/Specdrums Drive folder as SPECDRUMS_MANUAL_ENGLISH_SD01_DOC004437_REV_A.pdf. French and Spanish manuals and seven educational activity PDFs are also archived privately. The English manual is DOC 004437 REV A, six pages, model SD01; charging input is rated 5 V DC 500 mA and radio is BLE 4.0. The SDK and API site remain accessible at the original URLs and alternate Google Sites origin, but byte-complete snapshots have not been obtained. The public SDK covers multiple products; it is not an SD01-specific SDK.
