@@ -58,7 +58,7 @@ public final class MainActivity extends Activity {
         nativeMode=new CheckBox(this);nativeMode.setText("Experimental native RGB mode (not MIDI)");root.addView(nativeMode);
         devices=new LinearLayout(this); devices.setOrientation(LinearLayout.VERTICAL); root.addView(devices);
         diagnostic=new TextView(this);diagnostic.setText("Long-press a discovered device to inspect its GATT services without sending Sphero commands.");diagnostic.setTextIsSelectable(true);root.addView(diagnostic);
-        Button copy=new Button(this);copy.setText("Copy GATT report");copy.setOnClickListener(v->{if(report.isEmpty()){status.setText("No GATT report yet.");return;}android.content.ClipboardManager clipboard=getSystemService(android.content.ClipboardManager.class);clipboard.setPrimaryClip(android.content.ClipData.newPlainText("SpectralStudio GATT",report));status.setText("GATT report copied.");});root.addView(copy);
+        Button copy=new Button(this);copy.setText("Copy GATT / native trace");copy.setOnClickListener(v->{if(report.isEmpty()){status.setText("No GATT report yet.");return;}android.content.ClipboardManager clipboard=getSystemService(android.content.ClipboardManager.class);clipboard.setPrimaryClip(android.content.ClipData.newPlainText("SpectralStudio GATT",report));status.setText("GATT report copied.");});root.addView(copy);
         event=new TextView(this); event.setText("Waiting for a MIDI note or a test pad"); root.addView(event);
         packStatus=new TextView(this); packStatus.setText("Original MIX pack not loaded"); root.addView(packStatus);
         Button importPack=new Button(this); importPack.setText("Import original MIX APK"); importPack.setOnClickListener(v->choosePack()); root.addView(importPack);
@@ -200,13 +200,17 @@ public final class MainActivity extends Activity {
     }
     private void connectNative(BluetoothDevice target){
         stopScan();closeRing();final int attempt=generation;
-        status.setText("Opening experimental native GATT...");
+        status.setText("Opening experimental native GATT...");report="Native SD01 experimental trace\n";diagnostic.setText(report);
         nativeRing=new NativeRing(ui,t->{
             if(attempt!=generation)return;
             String label="RGB "+t.red()+","+t.green()+","+t.blue()+" / confidence "+t.confidence()+" / ID "+t.classification()+" / intensity "+t.intensity();
             if(t.identified()&&t.classification()<12)triggerPad(t.classification(),100,"Native");
             event.setText(label);
-        },s->{if(attempt==generation)status.setText(s);});
+        },s->{if(attempt==generation)status.setText(s);},line->{
+            if(attempt!=generation)return;
+            report+=line+"\n";if(report.length()>24000)report=report.substring(report.length()-24000);
+            diagnostic.setText(report);
+        });
         nativeRing.connect(this,target);
     }
     private void inspect(BluetoothDevice target){

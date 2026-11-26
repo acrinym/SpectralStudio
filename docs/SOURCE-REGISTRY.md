@@ -35,3 +35,7 @@ Supersedes the outstanding SDK/API snapshot status above. The owner supplied two
 | Sphero Public SDK - API Documents.mhtml | 3004177 | a8edb94f76217f62b77f7ffc5900b4c71108514fdca4230092703282d1302116 |
 
 Original origins: https://sdk.sphero.com/documentation/sdk-documents and https://sdk.sphero.com/documentation/api-documents . Captures contain HTML, CSS and PNG resources. These are two individual documentation-page snapshots, not an exhaustive crawl of every linked SDK page. Offline rendering and external link completeness have not been verified. Use these preserved primary sources alongside the original APK for subsequent protocol reconstruction.
+
+## Embedded API Information workbook
+
+Original workbook https://docs.google.com/spreadsheets/d/1BV7os_qIPh9MtRxZx1APz22judZJdlWqtgG5wPZuhn8/edit recovered from six iframe data-src entries in the API Documents MHTML. A complete native workbook copy is privately archived under Sphero/Specdrums. All six tabs have been read and confirmed against their original embed IDs. This closes the numerical-table gap in the MHTML capture; the private archive now has sixteen entries. No original table text is redistributed in the repository.

@@ -35,6 +35,9 @@ public class NativeChecks {
         session.receive(tap);check(taps.size()==1&&taps.get(0).classification()==4);
         session.receive(new SpheroFrame(0,0x1a,0x1e,0,-1,-1,-1,b(1)));check(taps.size()==1);
         NativeTapSession failed=new NativeTapSession(taps::add,status::add);failed.start(0);failed.receive(new SpheroFrame(1,0x1a,0x1d,0,-1,-1,7,b()));check(failed.state()==NativeTapSession.State.FAILED);
+        check(SpheroFrame.errorName(4).equals("Command is Restricted"));
+        check(SpheroFrame.errorName(10).equals("Target Unavailable"));
+        check(SpheroFrame.errorName(255).equals("Unknown error 255"));
         System.out.println("Native transport: "+checks+" checks passed");
     }
 }

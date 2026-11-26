@@ -24,6 +24,16 @@ public final class SpheroFrame {
     public int seq(){return seq;} public int tid(){return tid;} public int sid(){return sid;}
     public int error(){return error;} public boolean response(){return (flags&RESPONSE)!=0;}
     public byte[] payload(){return payload.clone();}
+    /** Original API Information / Error Codes tab, codes 0x00..0x0a. */
+    public static String errorName(int code){
+        return switch(code){
+            case 0->"Success";case 1->"Bad Device ID";case 2->"Bad Command ID";
+            case 3->"Not Yet Implemented";case 4->"Command is Restricted";
+            case 5->"Bad Data Length";case 6->"Command Failed";case 7->"Bad Parameter Value";
+            case 8->"Busy";case 9->"Bad Target ID";case 10->"Target Unavailable";
+            default->"Unknown error "+u8(code);
+        };
+    }
     public static SpheroFrame command(int did,int cid,int seq,byte[] data){return new SpheroFrame(REQUEST|ACTIVITY,did,cid,seq,-1,-1,-1,data);}
     public byte[] encode(){
         ByteArrayOutputStream raw=new ByteArrayOutputStream();

@@ -18,7 +18,7 @@ public final class NativeTapSession {
     public void receive(SpheroFrame frame){
         if(frame.did()!=SpecdrumsProtocol.IO)return;
         if(state==State.WAITING&&frame.response()&&frame.cid()==SpecdrumsProtocol.ENABLE_TAP&&frame.seq()==sequence){
-            if(frame.error()!=0){fail("Tap enable rejected: "+frame.error());return;}
+            if(frame.error()!=0){fail("Tap enable rejected: "+SpheroFrame.errorName(frame.error())+" ("+frame.error()+")");return;}
             state=State.ACTIVE;status.accept("Native tap enable acknowledged; waiting for color taps.");return;
         }
         if(state!=State.ACTIVE||frame.response()||frame.cid()!=SpecdrumsProtocol.TAP)return;
