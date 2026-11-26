@@ -1,0 +1,24 @@
+import org.spectralstudio.*;
+import java.util.*;
+import java.nio.*;
+public class CoreChecks {
+    static void check(boolean value){if(!value)throw new AssertionError();}
+    static byte[] b(int... values){byte[] r=new byte[values.length];for(int i=0;i<r.length;i++)r[i]=(byte)values[i];return r;}
+    static void send(MidiNotes m,int... values){byte[] r=b(values);m.accept(r,0,r.length);}
+    public static void main(String[] args){
+        List<String> seen=new ArrayList<>();
+        MidiNotes m=new MidiNotes((c,n,v,on)->seen.add(c+":"+n+":"+v+":"+on));
+        send(m,0x92,60);send(m,0xf8,100,61,0,0x82,62,40);
+        check(seen.equals(List.of("2:60:100:true","2:61:0:false","2:62:40:false")));
+        send(m,0xc0,1,2,0xb0,7,100,0xf0,1,2,0xf7,60,90,0xf2,1,2,61,100);
+        check(seen.size()==3);
+        send(m,0x90,64,127);check(seen.get(3).equals("0:64:127:true"));
+        m.reset();send(m,65,127);check(seen.size()==4);
+        m.accept(b(0,0x90,66,99,0),1,3);check(seen.get(4).equals("0:66:99:true"));
+        check(NoteSamples.frequency(69)==440.0);
+        byte[] wave=NoteSamples.wave(60);ByteBuffer w=ByteBuffer.wrap(wave).order(ByteOrder.LITTLE_ENDIAN);
+        check(w.getInt(4)==wave.length-8);check(w.getInt(40)==wave.length-44);check(w.getInt(24)==44100);
+        boolean audible=false;for(int i=44;i<wave.length;i+=2)if(w.getShort(i)!=0)audible=true;check(audible);
+        System.out.println("MIDI stream and procedural WAV checks passed");
+    }
+}
