@@ -22,6 +22,9 @@ public final class MainActivity extends Activity {
     private BluetoothLeScanner scanner;
     private ScanCallback callback;
     private MidiDevice device;
+    private BluetoothGatt probe;
+    private TextView diagnostic;
+    private String report="";
     private MidiOutputPort port;
     private SoundPool sound;
     private TextView status, event;
@@ -51,6 +54,8 @@ public final class MainActivity extends Activity {
         Button scan=new Button(this); scan.setText("Scan for Bluetooth MIDI devices"); scan.setOnClickListener(v->requestScan()); root.addView(scan);
         Button disconnect=new Button(this); disconnect.setText("Disconnect"); disconnect.setOnClickListener(v->{stopScan(); closeRing(); status.setText("Disconnected");}); root.addView(disconnect);
         devices=new LinearLayout(this); devices.setOrientation(LinearLayout.VERTICAL); root.addView(devices);
+        diagnostic=new TextView(this);diagnostic.setText("Long-press a discovered device to inspect its GATT services without sending Sphero commands.");diagnostic.setTextIsSelectable(true);root.addView(diagnostic);
+        Button copy=new Button(this);copy.setText("Copy GATT report");copy.setOnClickListener(v->{if(report.isEmpty()){status.setText("No GATT report yet.");return;}android.content.ClipboardManager clipboard=getSystemService(android.content.ClipboardManager.class);clipboard.setPrimaryClip(android.content.ClipData.newPlainText("SpectralStudio GATT",report));status.setText("GATT report copied.");});root.addView(copy);
         event=new TextView(this); event.setText("Waiting for a MIDI note or a test pad"); root.addView(event);
         packStatus=new TextView(this); packStatus.setText("Original MIX pack not loaded"); root.addView(packStatus);
         Button importPack=new Button(this); importPack.setText("Import original MIX APK"); importPack.setOnClickListener(v->choosePack()); root.addView(importPack);
@@ -157,7 +162,7 @@ public final class MainActivity extends Activity {
                 if(found.putIfAbsent(address,d)!=null)return;
                 Button button=new Button(MainActivity.this);
                 button.setText((name==null?"Unnamed MIDI":name)+" • "+address+(midi?" [MIDI]":""));
-                button.setOnClickListener(v->connect(d)); devices.addView(button);
+                button.setOnClickListener(v->connect(d));button.setOnLongClickListener(v->{inspect(d);return true;}); devices.addView(button);
             });}
             @Override public void onScanFailed(int code){ui.post(()->{if(callback==this){stopScan();status.setText("BLE scan failed: "+code);}});}
         };
@@ -190,8 +195,37 @@ public final class MainActivity extends Activity {
         },ui);}catch(SecurityException e){closeRing();status.setText("Bluetooth connection permission unavailable.");}
         ui.postDelayed(()->{if(attempt==generation && device==null){closeRing();status.setText("MIDI connection timed out.");}},20000);
     }
+    private void inspect(BluetoothDevice target){
+        stopScan();closeRing();final int attempt=generation;
+        report="";diagnostic.setText("Discovering GATT services…");status.setText("Read-only GATT inspection");
+        BluetoothGattCallback listener=new BluetoothGattCallback(){
+            @Override public void onConnectionStateChange(BluetoothGatt g,int result,int state){ui.post(()->{
+                if(attempt!=generation||g!=probe)return;
+                if(result==BluetoothGatt.GATT_SUCCESS&&state==BluetoothProfile.STATE_CONNECTED){if(!g.discoverServices()){status.setText("Service discovery could not start");closeProbe();}}
+                else {status.setText("GATT disconnected / status "+result);closeProbe();}
+            });}
+            @Override public void onServicesDiscovered(BluetoothGatt g,int result){ui.post(()->{
+                if(attempt!=generation||g!=probe)return;
+                if(result!=BluetoothGatt.GATT_SUCCESS){status.setText("GATT discovery failed: "+result);closeProbe();return;}
+                StringBuilder b=new StringBuilder("SpectralStudio GATT inventory\n");
+                for(BluetoothGattService service:g.getServices()){
+                    b.append("Service ").append(service.getUuid()).append('\n');
+                    for(BluetoothGattCharacteristic c:service.getCharacteristics()){
+                        b.append("  Characteristic ").append(c.getUuid()).append(" properties=0x").append(Integer.toHexString(c.getProperties())).append('\n');
+                        for(BluetoothGattDescriptor d:c.getDescriptors())b.append("    Descriptor ").append(d.getUuid()).append('\n');
+                    }
+                }
+                report=b.toString();diagnostic.setText(report);status.setText("GATT inventory complete; no vendor commands sent.");closeProbe();
+            });}
+        };
+        try{probe=target.connectGatt(this,false,listener,BluetoothDevice.TRANSPORT_LE);}
+        catch(SecurityException e){status.setText("Bluetooth permission unavailable.");return;}
+        if(probe==null){status.setText("GATT connection could not start.");return;}
+        ui.postDelayed(()->{if(attempt==generation&&probe!=null){closeProbe();status.setText("GATT discovery timed out.");}},20000);
+    }
+    private void closeProbe(){BluetoothGatt g=probe;probe=null;if(g!=null){try{g.disconnect();}catch(SecurityException ignored){}try{g.close();}catch(SecurityException ignored){}}}
     private static void close(Closeable c){if(c!=null)try{c.close();}catch(IOException ignored){}}
-    private void closeRing(){generation++;close(port);port=null;close(device);device=null;}
+    private void closeRing(){generation++;closeProbe();close(port);port=null;close(device);device=null;}
     @Override protected void onStop(){stopScan();closeRing();if(pack!=null)pack.stop();status.setText("Disconnected while app is in background.");super.onStop();}
     @Override protected void onDestroy(){destroyed=true;stopScan();closeRing();ui.removeCallbacksAndMessages(null);if(sound!=null)sound.release();if(pack!=null)pack.close();super.onDestroy();}
 }
