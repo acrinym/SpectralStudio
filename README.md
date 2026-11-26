@@ -12,3 +12,7 @@ Android BLE MIDI ring discovery and a local procedural instrument. No cloud, no 
 [Original MIX 1.2.2 and firmware archive](https://github.com/acrinym/SpectralStudio/releases/tag/preservation-specdrums-mix-1.2.2) — separate third-party licensing. [Fingerprints](preservation/manifest.json).
 
 [Development roadmap](docs/ROADMAP.md). MIT covers our own code.
+
+## Documentation library
+
+[Manuals, original sources, SDK inventory and developer reference](docs/README.md).

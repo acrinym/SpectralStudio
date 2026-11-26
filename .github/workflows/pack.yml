@@ -19,3 +19,11 @@ jobs:
 
       - name: Verify native command IDs against original DEX
         run: python tools/inspect_specdrums_dex.py "$RUNNER_TEMP/mix.apk"
+
+      - name: Generate and validate full bundled SDK symbol inventory
+        run: python tools/sdk_inventory.py "$RUNNER_TEMP/mix.apk" "$RUNNER_TEMP/sdk-inventory"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Original-SDK-inventory
+          path: ${{ runner.temp }}/sdk-inventory/
+          if-no-files-found: error
