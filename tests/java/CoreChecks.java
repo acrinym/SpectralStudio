@@ -19,6 +19,12 @@ public class CoreChecks {
         byte[] wave=NoteSamples.wave(60);ByteBuffer w=ByteBuffer.wrap(wave).order(ByteOrder.LITTLE_ENDIAN);
         check(w.getInt(4)==wave.length-8);check(w.getInt(40)==wave.length-44);check(w.getInt(24)==44100);
         boolean audible=false;for(int i=44;i<wave.length;i+=2)if(w.getShort(i)!=0)audible=true;check(audible);
-        System.out.println("MIDI stream and procedural WAV checks passed");
+        PadMapping map=new PadMapping();
+        check(map.find(0,60)==-1);map.assign(0,0,60);check(map.find(0,60)==0);
+        map.assign(1,0,60);check(map.key(0)==-1&&map.find(0,60)==1);
+        map.assign(0,1,60);check(map.find(1,60)==0&&map.find(0,60)==1);
+        map.assign(0,2,70);check(map.find(1,60)==-1&&map.find(2,70)==0);
+        map.clear();check(map.key(1)==-1&&map.key(0)==-1);
+        System.out.println("MIDI stream, procedural WAV and pad mapping checks passed");
     }
 }

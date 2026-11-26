@@ -18,7 +18,7 @@ jobs:
       - name: Core stream and audio checks
         run: |
           mkdir -p build/core-check
-          javac -d build/core-check app/src/main/java/org/spectralstudio/{MidiNotes,NoteSamples}.java tests/java/CoreChecks.java
+          javac -d build/core-check app/src/main/java/org/spectralstudio/{MidiNotes,NoteSamples,PadMapping}.java tests/java/CoreChecks.java
           java -cp build/core-check CoreChecks
       - name: Build Android debug APK
         run: gradle --no-daemon :app:assembleDebug
