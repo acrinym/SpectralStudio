@@ -1,0 +1,18 @@
+name: Original pack compatibility
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  original-pack:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Download preserved original
+        run: curl --fail --location --retry 3 --output "$RUNNER_TEMP/mix.apk" https://github.com/acrinym/SpectralStudio/releases/download/preservation-specdrums-mix-1.2.2/Specdrums_Mix_1.2.2.apk
+      - name: Verify original and import its complete default pack
+        run: python tools/import_mix_pack.py "$RUNNER_TEMP/mix.apk" "$RUNNER_TEMP/imported"
