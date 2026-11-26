@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "artifacts": [
+    {
+      "path": "Specdrums_Mix_1.2.2.apk",
+      "bytes": 99772192,
+      "sha256": "d5f03a44aca91e473cafcf2e74a94df58a7091cfe9d2cede15ea058f10867b30",
+      "provenance": "Original application archive supplied for compatibility research; binary not included."
+    },
+    {
+      "path": "assets/firmware/4.2.470.zip",
+      "bytes": 127746,
+      "sha256": "f8bb31e408435268efce46e7c6dc216a0c4759c3cb41c19c930f35b3d18e9819",
+      "container": "Specdrums_Mix_1.2.2.apk"
+    },
+    {
+      "path": "crc.dat",
+      "bytes": 14,
+      "sha256": "65991dcbe75e215c6a18f2bd80119107ed35a7104e5b4a74fff06e0adaeab317",
+      "container": "assets/firmware/4.2.470.zip"
+    },
+    {
+      "path": "app.bin",
+      "bytes": 127492,
+      "sha256": "bb73f1d1e99e56976124a038aa49896e3402c3c061130f3a56eda114c7f441c0",
+      "container": "assets/firmware/4.2.470.zip"
+    }
+  ]
+}
